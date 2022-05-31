@@ -1,7 +1,7 @@
 import unittest
+from collections import OrderedDict
 from sleekxmpp.test import SleekTest
 from sleekxmpp.xmlstream.stanzabase import ElementBase, register_stanza_plugin, ET
-from sleekxmpp.thirdparty import OrderedDict
 
 
 class TestElementBase(SleekTest):
@@ -385,7 +385,7 @@ class TestElementBase(SleekTest):
             interfaces = set(('bar', 'baz'))
 
             def setBar(self, value):
-                self._set_sub_text("path/to/only/bar", value);
+                self._set_sub_text("path/to/only/bar", value)
 
             def getBar(self):
                 return self._get_sub_text("path/to/only/bar")
@@ -394,7 +394,7 @@ class TestElementBase(SleekTest):
                 self._del_sub("path/to/only/bar")
 
             def setBaz(self, value):
-                self._set_sub_text("path/to/just/baz", value);
+                self._set_sub_text("path/to/just/baz", value)
 
             def getBaz(self):
                 return self._get_sub_text("path/to/just/baz")

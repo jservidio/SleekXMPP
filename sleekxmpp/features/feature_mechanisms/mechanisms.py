@@ -97,13 +97,7 @@ class FeatureMechanisms(BasePlugin):
                 jid = self.xmpp.requested_jid.bare
                 result[value] = creds.get('email', jid)
             elif value == 'channel_binding':
-                if hasattr(self.xmpp.socket, 'get_channel_binding'):
-                    result[value] = self.xmpp.socket.get_channel_binding()
-                else:
-                    log.debug("Channel binding not supported.")
-                    log.debug("Use Python 3.3+ for channel binding and " + \
-                              "SCRAM-SHA-1-PLUS support")
-                    result[value] = None
+                result[value] = self.xmpp.socket.get_channel_binding()
             elif value == 'host':
                 result[value] = creds.get('host', self.xmpp.requested_jid.domain)
             elif value == 'realm':
@@ -187,14 +181,14 @@ class FeatureMechanisms(BasePlugin):
         except sasl.SASLCancelled:
             self.attempted_mechs.add(self.mech.name)
             self._send_auth()
-        except sasl.SASLFailed:
-            self.attempted_mechs.add(self.mech.name)
-            self._send_auth()
         except sasl.SASLMutualAuthFailed:
             log.error("Mutual authentication failed! " + \
                       "A security breach is possible.")
             self.attempted_mechs.add(self.mech.name)
             self.xmpp.disconnect()
+        except sasl.SASLFailed:
+            self.attempted_mechs.add(self.mech.name)
+            self._send_auth()
         else:
             resp.send(now=True)
 
@@ -207,13 +201,13 @@ class FeatureMechanisms(BasePlugin):
             resp['value'] = self.mech.process(stanza['value'])
         except sasl.SASLCancelled:
             self.stanza.Abort(self.xmpp).send()
-        except sasl.SASLFailed:
-            self.stanza.Abort(self.xmpp).send()
         except sasl.SASLMutualAuthFailed:
             log.error("Mutual authentication failed! " + \
                       "A security breach is possible.")
             self.attempted_mechs.add(self.mech.name)
             self.xmpp.disconnect()
+        except sasl.SASLFailed:
+            self.stanza.Abort(self.xmpp).send()
         else:
             if resp.get_value() == '':
                 resp.del_value()
