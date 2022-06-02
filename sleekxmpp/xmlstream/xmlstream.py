@@ -459,10 +459,6 @@ class XMLStream(object):
                 # Good, create_default_context() is supported, which consists
                 # recommended security settings by default.
                 ctx = ssl.create_default_context()
-                if self.ssl_version == ssl.PROTOCOL_SSLv3:
-                    # But if the user specifies insecure SSLv3, do a favor.
-                    ctx.options &= ~ssl.OP_NO_SSLv3  # UNSET NO_SSLv3, or set SSLv3
-                    ctx.set_ciphers(_CIPHERS_SSL)  # _CIPHERS_SSL is weaker
 
                 # XXX: certificate is not verified in most circumstances.
                 # FIXME: need to provide a new option that verifies against system CAs.
@@ -473,15 +469,8 @@ class XMLStream(object):
                     ctx.load_verify_locations(cafile=self.ca_certs)
             else:
                 # Oops, create_default_context() is not supported.
-                if self.ssl_version == ssl.PROTOCOL_SSLv3:
-                    # First, if the user specifies insecure SSLv3, do a favor.
-                    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
-                    ctx.set_ciphers(_CIPHERS_SSL)
-                else:
-                    # Or, set the version to TLSv1 (later is not supported),
-                    # and set a list of good ciphers.
-                    ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-                    ctx.set_ciphers(_CIPHERS_TLS)
+                ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+                ctx.set_ciphers(_CIPHERS_TLS)
                 # And in both case, CRIME attack needs to be prevented.
                 if sys.version_info >= (3, 3):
                     ctx.options &= ssl.OP_NO_COMPRESSION
@@ -497,10 +486,6 @@ class XMLStream(object):
         elif sys.version_info >= (2, 7, 9):
             # Good, create_default_context() is supported, do the same as Python 3.4.
             ctx = ssl.create_default_context()
-            if self.ssl_version == ssl.PROTOCOL_SSLv3:
-                # If the user specifies insecure SSLv3, do a favor.
-                ctx.options &= ~ssl.OP_NO_SSLv3
-                ctx.set_ciphers(_CIPHERS_SSL)
             if cert_policy == ssl.CERT_NONE:
                 # XXX: certificate is not verified!
                 ctx.check_hostname = False
@@ -508,10 +493,7 @@ class XMLStream(object):
             elif cert_policy == ssl.CERT_REQUIRED:
                 ctx.load_verify_locations(cafile=self.ca_certs)
         else:
-            if self.ssl_version == ssl.PROTOCOL_SSLv3:
-                ssl_args['ssl_version'] = ssl.PROTOCOL_SSLv3
-            else:
-                ssl_args['ssl_version'] = ssl.PROTOCOL_TLSv1
+            ssl_args['ssl_version'] = ssl.PROTOCOL_TLSv1
             ctx = None
 
         if ctx:
