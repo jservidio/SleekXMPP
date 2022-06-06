@@ -61,22 +61,21 @@ def extract_names(raw_cert):
 
     cert = decoder.decode(raw_cert, asn1Spec=Certificate())[0]
     tbs = cert.getComponentByName('tbsCertificate')
-    subject = tbs.getComponentByName('subject')
+    subject = tbs.getComponentByName('subject')[0]
     extensions = tbs.getComponentByName('extensions') or []
 
     # Extract the CommonName(s) from the cert.
     for rdnss in subject:
         for rdns in rdnss:
-            for name in rdns:
-                oid = name.getComponentByName('type')
-                value = name.getComponentByName('value')
+            name = rdns.getComponentByName('type')
+            value = rdns.getComponentByName('value')
 
-                if oid != COMMON_NAME:
-                    continue
+            if name != COMMON_NAME:
+                continue
 
-                value = decoder.decode(value, asn1Spec=DirectoryString())[0]
-                value = decode_str(value.getComponent())
-                results['CN'].add(value)
+            value = decoder.decode(value, asn1Spec=DirectoryString())[0]
+            value = decode_str(value.getComponent())
+            results['CN'].add(value)
 
     # Extract the Subject Alternate Names (DNS, SRV, URI, XMPPAddr)
     for extension in extensions:

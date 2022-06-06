@@ -412,7 +412,7 @@ class Proxy(Endpoint):
         self._callback = callback
 
     def __getattribute__(self, name, *args):
-        if name in ('__dict__', '_endpoint', 'async', '_callback'):
+        if name in ('__dict__', '_endpoint', 'asyncfn', '_callback'):
             return object.__getattribute__(self, name)
         else:
             attribute = self._endpoint.__getattribute__(name)
@@ -427,7 +427,7 @@ class Proxy(Endpoint):
                     pass   # If the attribute doesn't exist, don't care!
             return attribute
 
-    def async(self, callback):
+    def asyncfn(self, callback):
         return Proxy(self._endpoint, callback)
 
     def get_endpoint(self):
